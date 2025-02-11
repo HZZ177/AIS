@@ -1,4 +1,4 @@
-from crewai import Agent, Task, Crew
+from crewai import Agent, Task, Crew, process
 from crewai_tools import PDFSearchTool
 from langchain_openai import ChatOpenAI
 import os
@@ -11,9 +11,9 @@ llm = ChatOpenAI(
     base_url="https://api.deepseek.com"
 )
 
-# 创建一个需求文档读取的智能体，该智能体通过调用 外部工具 完成文档内容读取
+# 创建一个需求文档读取工具，通过调用外部工具完成文档内容向量化并读取
 tool_pdf = PDFSearchTool(
-    pdf="api_doc.pdf",
+    pdf="test.pdf",
     config=dict(
         embedder=dict(
             provider="ollama",
@@ -67,11 +67,12 @@ task_testcase = Task(
 crew = Crew(
     agents=[requirements_analysis_agent, testcase_agent],
     tasks=[task_requirements, task_testcase],
+    Process=process.Process.sequential,
     verbose=True
 )
 
 result = crew.kickoff()
-print(result)
+# print(result)
 
 
 
