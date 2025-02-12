@@ -7,7 +7,7 @@ import os
 os.environ["OPENAI_API_KEY"] = "sk-bff4abb64efa423392aa04813aebd1a0"
 
 # 初始化一个llm大语言模型
-llm = ChatOpenAI(
+llm = LLM(
     # deepseek
     # model="deepseek/deepseek-chat",
     # base_url="https://api.deepseek.com",
@@ -20,9 +20,9 @@ llm = ChatOpenAI(
     # model="ollama/deepseek-r1:1.5b",
     # base_url="http://127.0.0.1:11434",
     # 千问
-    model="openai/qwen-max",
-    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1/",
-    api_key="sk-bff4abb64efa423392aa04813aebd1a0"
+    model=os.getenv("OPENAI_CHAT_MODEL"),
+    base_url=os.getenv("OPENAI_BASE_URL"),
+    api_key=os.getenv("OPENAI_API_KEY"),
 )
 
 # 创建一个需求文档读取工具，通过调用外部工具完成文档内容向量化并读取
