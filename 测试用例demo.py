@@ -1,10 +1,7 @@
 from datetime import datetime
 
+import litellm
 from crewai import Agent, Task, Crew, process, LLM
-from crewai_tools import PDFSearchTool
-from crewai_tools.tools.docx_search_tool.docx_search_tool import DOCXSearchTool
-from langchain_openai import ChatOpenAI
-import os
 
 # os.environ["OPENAI_API_KEY"] = "sk-f90f833388614e509da4e80528285dc2"
 # os.environ["OPENAI_API_KEY"] = "sk-bff4abb64efa423392aa04813aebd1a0"
@@ -21,7 +18,7 @@ llm = LLM(
     # openrouter
     model="openrouter/google/gemini-2.0-flash-001",
     base_url="https://openrouter.ai/api/v1",
-    api_key="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"
+    api_key="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"
 
     # 硅基流动
     # model="deepseek-ai/DeepSeek-V3",
@@ -104,9 +101,9 @@ task_testcase = Task(
     ## 模块分级1
     ### 模块分级2
     #### 用例标题
-        ##### 【前置条件】xxxxx
-        ##### 步骤1\n步骤1\n步骤2
-        ###### 预期结果1\n预期结果2\n预期结果3
+    ##### 【前置条件】xxxxx
+    ##### 步骤1\n步骤1\n步骤2
+    ###### 预期结果1\n预期结果2\n预期结果3
     3、不同参数类型的用例用分成不同的用例，而不是在对应这个测试点的步骤中分成多个步骤，
     比如验证某个配置的测试点，不填该配置，填入生效的值，填入不生效的值，应该分为三个用例，而不是一个用例的三个步骤对应三种预期结果
     4、标题分级的要求是，无论怎么分类，最好第三级是用例标题，最多到第四级是用例标题；不要使用代码块，代码块会导致导入xmind时内容进入备注里
@@ -128,6 +125,6 @@ crew = Crew(
 )
 
 result = crew.kickoff()
-with open(r"C:\obsidian\仓库\Everything\用例DEMO\testcase_result.md", "w", encoding="utf-8") as f:
+with open(r"D:\obsidian\仓库\Everything\用例DEMO\testcase_result.md", "w", encoding="utf-8") as f:
     f.write(str(result))
 # print(result)
