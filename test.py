@@ -1,12 +1,11 @@
-import os
-
 from crewai import Agent, Task, Crew, Process, LLM
+from crewai.knowledge.source.pdf_knowledge_source import PDFKnowledgeSource
 from crewai.knowledge.source.string_knowledge_source import StringKnowledgeSource
 
-os.environ["OPENAI_API_KEY"] = "sk-f90f833388614e509da4e80528285dc2"
+
 content = "Users name is John. He is 30 years old and lives in San Francisco."
-string_source = StringKnowledgeSource(
-    content=content,
+pdf_source = PDFKnowledgeSource(
+    file_paths=["findcarQA.pdf",]
 )
 
 # Create an LLM with a temperature of 0 to ensure deterministic outputs
@@ -36,16 +35,7 @@ crew = Crew(
     tasks=[task],
     verbose=True,
     process=Process.sequential,
-    knowledge={
-        "sources": [string_source],
-        "embedder_config": {
-            "provider": "ollama",
-            "model": "nomic-embed-text:latest",
-            "base_url": "http://localhost:11434"
-        },
-        "collection_name": "test"
-    },
-
+    knowledge_sources=[pdf_source],
 )
 
-result = crew.kickoff(inputs={"question": "What city does John live in and how old is he?"})
+result = crew.kickoff(inputs={"question": "车位状态变化很慢"})
