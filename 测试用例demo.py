@@ -19,12 +19,12 @@ llm = LLM(
     # openrouter
     model="openrouter/google/gemini-2.0-flash-001",
     base_url="https://openrouter.ai/api/v1",
-    api_key="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"
+    api_key="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"
 )
 
 # 创建一个需求文档读取工具，通过调用外部工具完成文档内容向量化并读取
-tool_pdf = DOCXSearchTool(
-    docx=r"C:\Users\86364\PycharmProjects\AIS\knowledge\test.docx",
+tool_pdf = PDFSearchTool(
+    pdf=r"/knowledge/test.pdf",
     config=dict(
         embedder=dict(
             provider="ollama",
@@ -118,5 +118,5 @@ crew = Crew(
 result = crew.kickoff()
 
 now = datetime.datetime.now().strftime("%m-%d-%H-%M")
-with open(rf"C:\obsidian\仓库\Everything\AI用例\testcase_result-{now}.md", "w", encoding="utf-8") as f:
+with open(rf"C:\obsidian\仓库\Everything\AI 相关\AI用例\testcase_result-{now}.md", "w", encoding="utf-8") as f:
     f.write(str(result))

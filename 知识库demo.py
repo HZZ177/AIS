@@ -14,6 +14,7 @@ llm = LLM(
 # 建立文件型知识库
 knowledge_source = PDFKnowledgeSource(
     file_paths=["findcarQA.pdf"],
+    api_key="sk-f90f833388614e509da4e80528285dc2"  # 添加API密钥
 )
 
 # ============================agents============================

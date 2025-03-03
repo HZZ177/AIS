@@ -1,7 +1,10 @@
 import re
+block = "验证系统内故障无法恢复**优先级**：高**测试步骤**：1. 模拟系统内部故障（例如，内存溢出，死锁）。2. 尝试执行故障恢复操作（例如，重启服务，回滚事务）。**预期结果**：故障恢复操作失败，系统保持故障状态。"
 
-index_name = "crew"
-if not re.match("^[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]$", index_name):
-    print(1)
-else:
-    print(2)
+
+steps_sections = re.findall(
+    r'\*\*测试步骤\*\*：\s*([\s\S]*?)\*\*预期结果\*\*：\s*([\s\S]*?)(?=\s*\*\*|\Z)',
+    block
+)
+
+print(steps_sections)
