@@ -12,7 +12,7 @@ from openpyxl.styles import Alignment
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_API_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = 'google/gemini-2.0-flash-001'
+MODEL = 'openai/gpt-4o-mini'
 
 
 def extract_text_from_pdf(pdf_path):
@@ -32,22 +32,54 @@ def call_llm_model(prompt, text, max_retries=4):
         "Content-Type": "application/json"
     }
     # 严格格式要求的系统提示
-    system_prompt = "你是一个资深的软件测试专家"
+    system_prompt = """  
+    你是一个资深测试架构师，需遵循以下原则生成测试用例：
+    
+    【三维覆盖策略】
+    1. 功能路径：确保覆盖所有显式需求+隐含业务规则
+    2. 异常空间：包含以下测试模式：
+       - 无效输入（类型错误/越界值/非法字符）
+       - 失效容错（超时/重试/降级策略）
+       - 资源极限（内存泄漏/线程死锁/存储满载）
+    3. 状态迁移：验证所有可能的状态转换路径
+    
+    【质量强化机制】
+    4. 必须包含：
+       - 边界爆破：±1临界值测试
+       - 时序验证：乱序操作/重复提交
+       - 数据耦合：跨功能数据依赖测试
+       - 环境扰动：时钟回拨/时区切换
+    
+    【可测性要求】
+    5. 每个用例应满足：
+       √ 可独立执行
+       √ 包含可观测断言
+       √ 前置条件明确
+       √ 结果可自动化验证
+    
+    【风险导向设计】
+    6. 按以下优先级排序：
+       1) 核心业务流程
+       2) 资金相关操作
+       3) 安全敏感功能
+       4) 高频使用场景
+    
+    【验证深度】
+    7. 每个测试点需生成：
+       - 正向验证（标准路径）
+       - 反向验证（异常处理）
+       - 边界验证（极值场景）
+       - 突变验证（随机故障注入）
+    
+    【智慧注入】
+    8. 应用以下测试模式：
+       ▶ 基于代码覆盖的用例优化（语句/分支/条件）
+       ▶ 基于风险矩阵的优先级分配
+       ▶ 基于正交缺陷分类的用例设计
+       ▶ 基于模糊测试的随机探索
+    """
     for attempt in range(max_retries):
         try:
-
-            # client = OpenAI(api_key="<DeepSeek API Key>", base_url="https://api.deepseek.com")
-            #
-            # response = client.chat.completions.create(
-            #     model="deepseek-chat",
-            #     messages=[
-            #         {"role": "system", "content": system_prompt},
-            #         {"role": "user", "content": f"{prompt}\n相关文本：{text}"},
-            #     ],
-            #     temperature=0.3,  # 降低随机性
-            #     stream=False
-            # )
-
             response = requests.post(
                 OPENROUTER_API_ENDPOINT,
                 headers=headers,
@@ -132,7 +164,7 @@ def generate_test_cases(pdf_path, output_excel="./生成测试用例 / TestCase_
     try:
         response = call_llm_model(
             """
-            将以下测试点转换为详细的测试用例
+            将测试点转换为详细的测试用例，每个测试点都需要用多个用例尽可能全面的覆盖
             生成用例时，严格按以下格式生成测试用例：
             ### 测试用例[编号]：[用例名称]
             **优先级**：[高/中/低]
