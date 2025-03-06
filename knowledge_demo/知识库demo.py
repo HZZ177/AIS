@@ -6,15 +6,16 @@ os.environ["OPENAI_API_KEY"] = "sk-f90f833388614e509da4e80528285dc2"
 
 # 初始化一个llm大语言模型
 llm = LLM(
-    model="deepseek/deepseek-chat",
-    base_url="https://api.deepseek.com",
-    api_key="sk-f90f833388614e509da4e80528285dc2"
+    # openrouter
+    model="openrouter/google/gemini-2.0-flash-001",
+    base_url="https://openrouter.ai/api/v1",
+    api_key="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"
 )
 
 # 建立文件型知识库
 knowledge_source = PDFKnowledgeSource(
     file_paths=["findcarQA.pdf"],
-    api_key="sk-f90f833388614e509da4e80528285dc2"  # 添加API密钥
+    api_key="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"  # 添加API密钥
 )
 
 # ============================agents============================

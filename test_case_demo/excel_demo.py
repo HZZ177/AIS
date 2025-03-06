@@ -262,11 +262,11 @@ def export_to_excel(data, filename):
 
 if __name__ == "__main__":
     # 生成结构化数据
-    test_case_data = generate_test_cases("./knowledge/test.pdf")
+    test_case_data = generate_test_cases("knowledge/test.pdf")
     # 检查有效数据
     if test_case_data and len(test_case_data) > 0:
         # 添加文件存在性检查
-        output_file = "./output/TestCase_ai.xlsx"
+        output_file = "output/TestCase_ai.xlsx"
         if os.path.exists(output_file):
             os.remove(output_file)
         export_to_excel(test_case_data, output_file)
