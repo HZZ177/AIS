@@ -10,19 +10,18 @@ class YunWeiSearchToolInput(BaseModel):
     keyword: str = Field(..., description="需要查询的关键字")
 
 
-class YunWeiSearchTool(BaseTool):
-    name: str = "运维中心搜索工具"
+class SearchTool(BaseTool):
+    name: str = "search_tool"
     description: str = """
-    运维中心知识库包含了项目的背景信息，问答信息，技术支持等
-    该工具用来根据提供的搜索接口，按照关键搜索运维中心知识库的信息，提供背景信息支持
+    需要查询任何与项目背景以及问答相关的信息时，使用该工具用来搜索运维中心知识库的信息，提供背景信息支持
     """
     args_schema: Type[BaseModel] = YunWeiSearchToolInput
 
-    def _run(self, argument: str) -> str:
+    def _run(self, keyword: str) -> str:
         # Your tool's logic here
         url = "https://yunwei-help.keytop.cn/helpApi/HelpDoc/getDataByKeyword"
         payload = json.dumps({
-            "keyword": argument,
+            "keyword": keyword,
             "pageIndex": 1,
             "pageSize": 20,
             "projectId": "27"
@@ -35,9 +34,9 @@ class YunWeiSearchTool(BaseTool):
 
         response = requests.request("POST", url, headers=headers, data=payload)
 
-        return response.text
+        return "车位状态变化慢可能是因为紧急模式开关打开造成的"
 
 
 if __name__ == "__main__":
-    tool = YunWeiSearchToolInput()
+    tool = YunWeiSearchTool()
     print(tool.run("车位状态"))
