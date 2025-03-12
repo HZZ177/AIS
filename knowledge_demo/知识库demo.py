@@ -1,7 +1,6 @@
 from crewai import Agent, Task, Crew, process, LLM
-from crewai.knowledge.source.pdf_knowledge_source import PDFKnowledgeSource
 import os
-from tools.search_tool import SearchTool
+from tools.search_tool_vector import SearchTool
 
 os.environ["OPENAI_API_KEY"] = "sk-f90f833388614e509da4e80528285dc2"
 
@@ -13,30 +12,26 @@ llm = LLM(
     api_key="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"
 )
 
-# 建立文件型知识库
-# knowledge_source = PDFKnowledgeSource(
-#     file_paths=["findcarQA.pdf"],
-#     api_key="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"  # 添加API密钥
-# )
+# ============================agents============================
+
 search_tool = SearchTool()
 
-# ============================agents============================
 # 创建多个agents
 search_agent = Agent(
     role="finder",
-    goal="使用【search_tool】工具，根据用户的问题来寻找对应可能解决问题的资料",
-    backstory="你是一位根据用户提供的问题，运用工具查询所有可能相关的背景资料和QA资料的检索员，请让你的返回结果尽可能的全面",
+    goal="根据用户的问题来寻找对应可能解决问题的资料",
+    backstory="你是一位根据用户提供的问题，运用工具查询所有可能相关的背景资料和QA资料的检索员，请让你的返回结果尽可能的全面，注意你只能使用中文",
     verbose=True,
     allow_delegation=False,
     # knowledge_sources=[knowledge_source],
-    tool=search_tool,
+    tools=[search_tool,],
     llm=llm
 )
 
 answer_agent = Agent(
     role="customer",
     goal="根据用户的问题和检索员提供的对应资料，回答用户的问题",
-    backstory="你是一位资深客服，请让你的回答尽可能详细，所有回答的内容需要从参考资料中获取，并且需要根据用户的问题给出最合适的答案。",
+    backstory="你是一位资深客服，请让你的回答尽可能详细，所有回答的内容需要从参考资料中获取，并且需要根据用户的问题给出最合适的答案，注意你只能使用中文",
     verbose=True,
     allow_delegation=False,
     # knowledge_sources=[knowledge_source],
@@ -46,38 +41,47 @@ answer_agent = Agent(
 # ============================tasks============================
 task_requirements = Task(
     description="""
-    1、请你务必要使用【search_tool】工具查询与用户问题【{question}】相关的资料
-    2、然后分析资料中与客户问题相关性最高的五条资料，提取出来提供给下一个人员作为背景资料
-    注意：如果没有从文档中找到精确匹配的相关资料原文，请直接返回没有找到
+    1、你需要根据客户的问题【{question}】，使用工具【search_tool】进行相关背景资料的查询并提供给其他人
+    2、你只能使用工具查询出的资料作为信息来源，除此之外不要用使用任何其他来源的信息
+    注意：如果没有从工具中找到精确匹配的相关资料，请直接返回没有找到
     """,
-    expected_output="5条与问题{question}最相关的详细的资料",
+    expected_output="""
+    5条与问题{question}最相关的详细的资料
+    """,
     agent=search_agent,
     verbose=True,
-    tool=search_tool,
     llm=llm
 )
 
 task_testcase = Task(
-    description="根基查询员提供的资料，结合用户的问题{question}分析问题可能出现在哪里，对应的解决方案是什么，如果上一步返回给你没有找到任何资料，请直接说明没有找到",
-    expected_output="问题可能出现在什么地方或者什么环节，对应的解决方案是什么",
+    description="""
+    根据查询员提供的资料，结合用户的问题{question}分析问题可能出现在哪里，对应的解决方案是什么
+    如果上一步返回给你没有找到任何资料，请直接说明没有找到
+    注意：如果有多条建议或方案，请分点列出
+    """,
+    expected_output="""
+    对客户问题的解答
+    """,
     agent=answer_agent,
     verbose=True,
     llm=llm
 )
 
 # ========================执行agents工作流========================
+# 在创建 crew 之前添加调试代码
+print("search_agent的可用工具", [tool.name for tool in search_agent.tools])
+
 crew = Crew(
     agents=[search_agent, answer_agent],
     tasks=[task_requirements, task_testcase],
     Process=process.Process.sequential,
     # knowledge_sources=[knowledge_source],
-    tools=[search_tool],
     verbose=True
 )
 
 
 if __name__ == "__main__":
-    result = crew.kickoff(inputs={"question": "车位状态变化非常慢"})
+    result = crew.kickoff(inputs={"question": "入车后，车位状态不变化"})
     # # print(result)
     # result = tool_pdf.run(
     #     pdf='files/findcarQA.pdf',

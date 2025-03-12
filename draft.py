@@ -1,10 +1,27 @@
-import re
-block = "验证系统内故障无法恢复**优先级**：高**测试步骤**：1. 模拟系统内部故障（例如，内存溢出，死锁）。2. 尝试执行故障恢复操作（例如，重启服务，回滚事务）。**预期结果**：故障恢复操作失败，系统保持故障状态。"
+import requests
 
+url = "https://yunwei-help.keytop.cn/helpApi/HelpDoc/getDataByKeyword"
+payload = {
+    "keyword": "车位状态",
+    "pageIndex": 1,
+    "pageSize": 20,
+    "projectId": 27
+}
+headers = {
+    'token': '5iw61f16wtjh2p46ue38h19tloo5pftw9fupsd7omeyd6b9uj1jyv4pr0ts86hvdozt8apcrbhbahb9giw74o0kt14c0mxzzxfp40wmfqdiaahsxdvaqzvofmmplm2aesjtgk1pt67zpx7bb',
+    'userid': '6c2c601eaf9c4babbb0f8b1a6601260c',
+    'Content-Type': 'application/json'
+}
 
-steps_sections = re.findall(
-    r'\*\*测试步骤\*\*：\s*([\s\S]*?)\*\*预期结果\*\*：\s*([\s\S]*?)(?=\s*\*\*|\Z)',
-    block
-)
+response = requests.post(url, headers=headers, json=payload)
+# print(response.text)
 
-print(steps_sections)
+data = response.json().get("data").get("list")
+md_list = []
+for _ in data:
+    title = _.get("text")
+    if "接口" not in title:
+        md_list.append(_.get("md"))
+    else:
+        print(f"查询到{title}接口相关内容，跳过引用")
+print(len(md_list))
