@@ -51,7 +51,7 @@ class LatestAiDevelopment():
     @crew
     def crew(self) -> Crew:
         """Creates the LatestAiDevelopment crew"""
-        # To learn how to add knowledge_demo sources to your crew, check out the documentation:
+        # To learn how to add main_demo sources to your crew, check out the documentation:
         # https://docs.crewai.com/concepts/knowledge#what-is-knowledge
 
         return Crew(

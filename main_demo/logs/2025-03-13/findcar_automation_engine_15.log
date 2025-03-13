@@ -1,0 +1,10 @@
+2025-03-13 15:14:13.3438 | search_tool_vector:109 | INFO | ChromaDB 客户端初始化成功，dbid=1670946296144
+2025-03-13 15:14:13.3449 | search_tool_vector:115 | INFO | Embedding 函数初始化成功
+2025-03-13 15:14:13.3812 | search_tool_vector:123 | INFO | 集合初始化成功：yunwei_knowledge
+2025-03-13 15:14:13.3853 | main:73 | INFO | search_agent的可用工具
+2025-03-13 15:14:17.5510 | search_tool_vector:274 | INFO | 工具接收的关键词：车位状态
+2025-03-13 15:14:17.8948 | search_tool_vector:283 | INFO | 从API获取到 18 条数据
+2025-03-13 15:14:17.8972 | search_tool_vector:185 | INFO | 去掉接口文档，总计 11 个文档，42 个文本块
+2025-03-13 15:17:16.8298 | search_tool_vector:226 | INFO | 
+成功存储 42 个文本块到向量数据库
+2025-03-13 15:17:16.8298 | search_tool_vector:231 | INFO | 开始从chromadb查询关键词：车位状态

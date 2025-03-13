@@ -1,0 +1,48 @@
+2025-03-13 16:22:11.1534 | search_tool_vector:155 | INFO | ChromaDB 客户端初始化成功，dbid=2545222465808
+2025-03-13 16:22:11.1544 | search_tool_vector:165 | INFO | Embedding 函数初始化成功
+2025-03-13 16:22:11.2136 | search_tool_vector:173 | INFO | 集合初始化成功：yunwei_knowledge
+2025-03-13 16:22:11.2136 | search_tool_vector:324 | INFO | 工具接收的关键词：车位状态
+2025-03-13 16:22:11.5118 | search_tool_vector:333 | INFO | 从API获取到 18 条数据
+2025-03-13 16:22:11.5128 | search_tool_vector:235 | INFO | 去掉接口文档，总计 11 个文档，42 个文本块
+2025-03-13 16:22:25.2371 | search_tool_vector:276 | INFO | 
+成功存储 42 个文本块到向量数据库
+2025-03-13 16:22:25.2371 | search_tool_vector:281 | INFO | 开始从chromadb查询关键词：车位状态
+2025-03-13 16:23:39.0845 | search_tool_vector:155 | INFO | ChromaDB 客户端初始化成功，dbid=2285392116688
+2025-03-13 16:23:39.0868 | search_tool_vector:165 | INFO | Embedding 函数初始化成功
+2025-03-13 16:23:39.0889 | search_tool_vector:173 | INFO | 集合初始化成功：yunwei_knowledge
+2025-03-13 16:23:39.0889 | search_tool_vector:324 | INFO | 工具接收的关键词：车位占用状态
+2025-03-13 16:23:39.3260 | search_tool_vector:333 | INFO | 从API获取到 2 条数据
+2025-03-13 16:23:39.3266 | search_tool_vector:235 | INFO | 去掉接口文档，总计 1 个文档，6 个文本块
+2025-03-13 16:23:39.3413 | search_tool_vector:249 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_1
+2025-03-13 16:23:39.3423 | search_tool_vector:249 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_2
+2025-03-13 16:23:39.3443 | search_tool_vector:249 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_3
+2025-03-13 16:23:39.3464 | search_tool_vector:249 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_4
+2025-03-13 16:23:39.3474 | search_tool_vector:249 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_5
+2025-03-13 16:23:39.3494 | search_tool_vector:249 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_6
+2025-03-13 16:23:39.3494 | search_tool_vector:276 | INFO | 
+成功存储 0 个文本块到向量数据库
+2025-03-13 16:23:39.3494 | search_tool_vector:281 | INFO | 开始从chromadb查询关键词：车位占用状态
+2025-03-13 16:41:30.0093 | search_tool_vector:153 | INFO | ChromaDB 客户端初始化成功，dbid=2213475341392
+2025-03-13 16:41:30.0126 | search_tool_vector:163 | INFO | Embedding 函数初始化成功
+2025-03-13 16:41:30.0161 | search_tool_vector:171 | INFO | 集合初始化成功：yunwei_knowledge
+2025-03-13 16:41:30.0161 | search_tool_vector:322 | INFO | 工具接收的关键词：车位占用状态
+2025-03-13 16:41:30.2537 | search_tool_vector:331 | INFO | 从API获取到 2 条数据
+2025-03-13 16:41:30.2537 | search_tool_vector:233 | INFO | 去掉接口文档，总计 1 个文档，6 个文本块
+2025-03-13 16:41:30.2795 | search_tool_vector:247 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_1
+2025-03-13 16:41:30.2806 | search_tool_vector:247 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_2
+2025-03-13 16:41:30.2826 | search_tool_vector:247 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_3
+2025-03-13 16:41:30.2852 | search_tool_vector:247 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_4
+2025-03-13 16:41:30.2872 | search_tool_vector:247 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_5
+2025-03-13 16:41:30.2892 | search_tool_vector:247 | INFO | 向量存储跳过已存在的文档块 doc_8729_chunk_6
+2025-03-13 16:41:30.2892 | search_tool_vector:274 | INFO | 
+成功存储 0 个文本块到向量数据库
+2025-03-13 16:41:30.2892 | search_tool_vector:279 | INFO | 开始从chromadb查询关键词：车位占用状态
+2025-03-13 16:42:10.0212 | search_tool_vector:153 | INFO | ChromaDB 客户端初始化成功，dbid=2335306628880
+2025-03-13 16:42:10.0225 | search_tool_vector:163 | INFO | Embedding 函数初始化成功
+2025-03-13 16:42:10.0601 | search_tool_vector:171 | INFO | 集合初始化成功：yunwei_knowledge
+2025-03-13 16:42:10.0601 | search_tool_vector:322 | INFO | 工具接收的关键词：车位占用状态
+2025-03-13 16:42:10.2924 | search_tool_vector:331 | INFO | 从API获取到 2 条数据
+2025-03-13 16:42:10.2924 | search_tool_vector:233 | INFO | 去掉接口文档，总计 1 个文档，6 个文本块
+2025-03-13 16:42:12.1500 | search_tool_vector:274 | INFO | 
+成功存储 6 个文本块到向量数据库
+2025-03-13 16:42:12.1500 | search_tool_vector:279 | INFO | 开始从chromadb查询关键词：车位占用状态

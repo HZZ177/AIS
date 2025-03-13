@@ -1,6 +1,7 @@
 from crewai import Agent, Task, Crew, process, LLM
 import os
 from tools.search_tool_vector import SearchTool
+from main_demo.core.logger import logger
 
 os.environ["OPENAI_API_KEY"] = "sk-f90f833388614e509da4e80528285dc2"
 
@@ -58,6 +59,13 @@ task_testcase = Task(
     根据查询员提供的资料，结合用户的问题{question}分析问题可能出现在哪里，对应的解决方案是什么
     如果上一步返回给你没有找到任何资料，请直接说明没有找到
     注意：如果有多条建议或方案，请分点列出
+    例如：
+    【用户】
+        入车之后车位状态不变，仍然是空闲
+    【回答】：
+        1、可能是由于开启了后台紧急模式，导致车位状态变化减慢或失准，可以在后台关闭紧急模式开关来解决
+        2、xxxxxxxxxxxxxxx
+        3、xxxxxxxxxxxxxxx
     """,
     expected_output="""
     对客户问题的解答
@@ -68,8 +76,8 @@ task_testcase = Task(
 )
 
 # ========================执行agents工作流========================
-# 在创建 crew 之前添加调试代码
-print("search_agent的可用工具", [tool.name for tool in search_agent.tools])
+# 在创建 crew 之前调试可用工具
+logger.info("search_agent的可用工具", [tool.name for tool in search_agent.tools])
 
 crew = Crew(
     agents=[search_agent, answer_agent],
@@ -81,7 +89,7 @@ crew = Crew(
 
 
 if __name__ == "__main__":
-    result = crew.kickoff(inputs={"question": "入车后，车位状态不变化"})
+    result = crew.kickoff(inputs={"question": "车位状态"})
     # # print(result)
     # result = tool_pdf.run(
     #     pdf='files/findcarQA.pdf',
