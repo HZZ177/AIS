@@ -30,7 +30,7 @@ logger.configure(
             "enqueue": False,  # 关闭多线程安全队列
         },
         {
-            "sink": f"{log_path}/{current_date}/findcar_automation_engine_{current_hour}.log",  # 指定日志输出到文件
+            "sink": f"{log_path}/{current_date}/AIS_{current_hour}.log",  # 指定日志输出到文件
             "level": "INFO",  # 日志级别
             "format": "{time:YYYY-MM-DD HH:mm:ss.SSSS} | {module}:{line} | {level} | {message}",  # 日志格式
             "rotation": "1 hour",  # 每小时自动分割日志

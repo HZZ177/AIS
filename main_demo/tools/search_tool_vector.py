@@ -346,6 +346,5 @@ if __name__ == "__main__":
 
     # 测试搜索
     test_keywords = "车位状态"
-    # result = tool.run(keyword=test_keywords)
-    result = tool._search_from_chromadb(keyword="车位状态")
+    result = tool.run(keyword=test_keywords)
     print(result)
