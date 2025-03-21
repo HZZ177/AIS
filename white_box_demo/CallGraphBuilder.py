@@ -139,3 +139,21 @@ class CallGraphBuilder:
             result['children'][successor] = self._build_hierarchy_recursive(successor, visited.copy())
 
         return result
+
+    def build_call_graph_from_function(self, function, full_name):
+        """从特定函数开始构建调用图
+        
+        Args:
+            function: 函数对象
+            full_name: 函数的完整导入路径
+        
+        Returns:
+            NetworkX有向图对象
+        """
+        self.call_graph = nx.DiGraph()
+        self.analyzed_functions = set()
+        
+        # 直接从给定函数开始分析
+        self._analyze_function(function, full_name)
+        
+        return self.call_graph

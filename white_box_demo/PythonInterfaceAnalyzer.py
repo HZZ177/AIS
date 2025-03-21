@@ -28,7 +28,7 @@ class PythonInterfaceAnalyzer:
     def load_module(self, file_path: str) -> Optional[astroid.Module]:
         """加载Python文件为astroid模块"""
         try:
-            return astroid.parse(open(file_path).read(), file_path)
+            return astroid.parse(open(file_path, encoding='utf-8').read(), file_path)
         except Exception as e:
             print(f"解析文件 {file_path} 出错: {str(e)}")
             return None

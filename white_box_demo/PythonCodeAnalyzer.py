@@ -1,5 +1,8 @@
 import os
 from typing import Dict
+import importlib
+import inspect
+import traceback
 
 from white_box_demo.CallGraphBuilder import CallGraphBuilder
 from white_box_demo.CodeLogicAnalyzer import CodeLogicAnalyzer
@@ -73,3 +76,74 @@ class PythonCodeAnalyzer:
             'test_cases': test_cases,
             'report': report
         }
+
+    def analyze_api_endpoint(self, endpoint_path):
+        """分析API入口点及其调用链
+        
+        Args:
+            endpoint_path: API入口点的导入路径，例如'apps.lora_node.urls.alarm_recovery_report'
+        
+        Returns:
+            包含API调用链所有函数源码的字典
+        """
+        print(f"开始分析API入口点: {endpoint_path}")
+        
+        try:
+            # 动态导入模块
+            module_parts = endpoint_path.split('.')
+            module_name = '.'.join(module_parts[:-1])
+            function_name = module_parts[-1]
+            
+            module = importlib.import_module(module_name)
+            endpoint_function = getattr(module, function_name, None)
+            
+            if not endpoint_function:
+                print(f"未找到API入口点函数: {endpoint_path}")
+                return None
+            
+            # 构建调用图
+            call_graph_builder = CallGraphBuilder(self.project_path)
+            call_graph = call_graph_builder.build_call_graph_from_function(endpoint_function, endpoint_path)
+            
+            # 收集调用链上所有函数的源码
+            source_code_collection = self._collect_source_code(call_graph)
+            
+            return {
+                'endpoint': endpoint_path,
+                'call_graph': call_graph,
+                'source_code': source_code_collection
+            }
+            
+        except Exception as e:
+            print(f"分析API入口点时出错: {str(e)}")
+            traceback.print_exc()
+            return None
+        
+    def _collect_source_code(self, call_graph):
+        """收集调用图中所有函数的源码"""
+        source_code_collection = {}
+        
+        for node in call_graph.nodes():
+            try:
+                func_parts = node.split('.')
+                module_name = '.'.join(func_parts[:-1])
+                func_name = func_parts[-1]
+                
+                module = importlib.import_module(module_name)
+                func = getattr(module, func_name)
+                
+                # 获取源码
+                try:
+                    source = inspect.getsource(func)
+                    source_code_collection[node] = {
+                        'source': source,
+                        'file': inspect.getfile(func),
+                        'line': inspect.getsourcelines(func)[1]
+                    }
+                except Exception as e:
+                    print(f"无法获取函数 {node} 的源码: {str(e)}")
+                
+            except Exception as e:
+                print(f"处理节点 {node} 时出错: {str(e)}")
+            
+        return source_code_collection
