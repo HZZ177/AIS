@@ -9,6 +9,12 @@ from white_box_jingtai_demo.core.logger import logger
 class PythonAnalyzer(BaseAnalyzer):
     """Python代码分析器"""
 
+    def __init__(self, project_path):
+        super().__init__(project_path)
+        self.decorated_functions = None
+        self.related_modules = None
+        self.entry_module = None
+
     def analyze_entry_point(self, entry_point_path):
         """分析Python入口点及其调用链"""
         try:
@@ -148,7 +154,8 @@ class PythonAnalyzer(BaseAnalyzer):
             logger.error(f"解析文件 {file_path} 时出错: {e}")
             return None
 
-    def _find_function_node(self, module_ast, function_name, class_name=None):
+    @staticmethod
+    def _find_function_node(module_ast, function_name, class_name=None):
         """在AST中查找函数或方法定义"""
         for node in ast.walk(module_ast):
             # 查找函数 - 同时支持普通函数和异步函数
@@ -270,13 +277,15 @@ class PythonAnalyzer(BaseAnalyzer):
 
         return None
 
-    def _resolve_import(self, name, context_path):
+    @staticmethod
+    def _resolve_import(name, context_path):
         """解析导入的函数名"""
         # 这里需要解析当前模块的导入语句，简化版
         module_path = '.'.join(context_path.split('.')[:-1])
         return f"{module_path}.{name}"
 
-    def _resolve_complex_attribute_call(self, attr_node, context_path):
+    @staticmethod
+    def _resolve_complex_attribute_call(attr_node, context_path):
         """解析复杂的属性调用链，如 obj.method() 或 module.submodule.func()"""
         parts = []
         current = attr_node
@@ -469,8 +478,8 @@ class PythonAnalyzer(BaseAnalyzer):
 
         return source_collection
 
-    # 添加新的辅助方法，用于判断是否跨模块调用
-    def _is_different_module(self, caller_path, called_path):
+    @staticmethod
+    def _is_different_module(caller_path, called_path):
         """判断两个调用路径是否属于不同的模块"""
         if '.' not in caller_path or '.' not in called_path:
             return False
@@ -484,8 +493,8 @@ class PythonAnalyzer(BaseAnalyzer):
 
         return caller_module != called_module
 
-    # 添加辅助方法，获取与入口模块相关的合法模块列表
-    def _get_related_modules(self, entry_module):
+    @staticmethod
+    def _get_related_modules(entry_module):
         """获取与入口模块相关的合法调用模块列表"""
         related = set()
 

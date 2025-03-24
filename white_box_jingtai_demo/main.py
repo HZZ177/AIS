@@ -5,7 +5,7 @@ from white_box_jingtai_demo.core.logger import logger
 
 
 def create_analyzer(project_path, language=None):
-    """工厂函数：创建合适的分析器"""
+    """工厂函数，返回匹配的分析器"""
     if not language:
         # 自动检测语言
         if os.path.exists(os.path.join(project_path, 'pom.xml')) or \
@@ -15,9 +15,7 @@ def create_analyzer(project_path, language=None):
                 os.path.exists(os.path.join(project_path, 'setup.py')):
             language = 'python'
         else:
-            # 遍历文件扩展名
-            extensions = {'py': 'python', 'java': 'java'}
-            # ...
+            pass    # 其他辨认逻辑
 
     # 返回对应的分析器
     if language == 'python':
