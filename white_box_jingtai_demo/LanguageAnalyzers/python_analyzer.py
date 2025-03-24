@@ -4,6 +4,7 @@ import networkx as nx
 import re
 from white_box_jingtai_demo.LanguageAnalyzers.base_analyzer import BaseAnalyzer
 from white_box_jingtai_demo.core.logger import logger
+import matplotlib.pyplot as plt
 
 
 class PythonAnalyzer(BaseAnalyzer):
@@ -14,6 +15,7 @@ class PythonAnalyzer(BaseAnalyzer):
         self.decorated_functions = None
         self.related_modules = None
         self.entry_module = None
+        self.call_graph = nx.DiGraph()  # 初始化为 nx.DiGraph
 
     def analyze_entry_point(self, entry_point_path):
         """分析Python入口点及其调用链"""
@@ -40,7 +42,7 @@ class PythonAnalyzer(BaseAnalyzer):
                 return None
 
             # 分析调用链
-            self.call_graph = nx.DiGraph()
+            # self.call_graph = nx.DiGraph() # 移到 __init__ 中
             self.call_graph.add_node(entry_point_path)
             self._analyze_calls_recursive(target_node, entry_point_path, set())
 
@@ -512,3 +514,60 @@ class PythonAnalyzer(BaseAnalyzer):
     def _is_related_module(self, module_name):
         """判断模块是否与入口模块相关"""
         return module_name in self.related_modules
+
+    def visualize_call_graph(self, output_file="call_graph.png"):
+        """可视化调用图，并保存为图片文件"""
+        try:
+            # 1. 调整布局参数
+            pos = nx.spring_layout(self.call_graph, k=1.2, iterations=200, seed=42)     # 增加 k 和迭代次数
+            # 2. 中心性度量 (可选)
+            degree_centrality = nx.degree_centrality(self.call_graph)
+            # 3. 节点和边样式
+            fig, ax = plt.subplots(figsize=(16, 12))  # 创建 figure 和 axes 对象
+            # 相应地调整大小
+            node_size = [v * 3000 for v in degree_centrality.values()]  # 较小的动态节点
+            # 根据度中心性着色节点
+            node_color = [v for v in degree_centrality.values()]
+            # 进一步缩短标签 (处理 "urls")
+            labels = {node: node.split('.')[-1].replace("urls", "") for node in self.call_graph.nodes()}
+            options = {
+                "font_size": 7,  # 调整字体大小
+                "font_weight": "bold",
+                "width": 1.5,
+                "edge_color": "gray",
+                "alpha": 0.7,
+                "arrowsize": 20,
+                "node_color": node_color,
+                "cmap": plt.cm.viridis,
+                "connectionstyle": "arc3, rad = 0.1"
+            }
+            nx.draw(
+                self.call_graph,
+                pos,
+                labels=labels,
+                node_size=node_size,
+                ax=ax,  # 将 axes 对象传递给 nx.draw
+                **options
+            )
+            plt.title("Call Graph Visualization", fontsize=16)
+            plt.colorbar(plt.cm.ScalarMappable(cmap=plt.cm.viridis,
+                                               norm=plt.Normalize(vmin=min(node_color), vmax=max(node_color))),
+                         label="Degree Centrality", ax=ax)
+            plt.savefig(output_file, format="png", bbox_inches="tight")
+            plt.close()
+            logger.info(f"调用图已保存到 {output_file}")
+        except ImportError:
+            logger.warning("matplotlib 未安装，正在使用 Graphviz 生成基本图形")
+            # 如果没有 matplotlib，仍然使用 Graphviz 生成基本图形
+            try:
+                dot = nx.drawing.nx_pydot.to_pydot(self.call_graph)
+                dot.write_png(output_file)
+                logger.info(f"调用图已保存到 {output_file} (使用 Graphviz)")
+            except Exception as e:
+                logger.error(f"生成图形时出错: {e}. 请确保 Graphviz 已正确安装.")
+
+
+# 示例使用 (测试代码放这里)
+if __name__ == '__main__':
+    pass
+

@@ -63,6 +63,9 @@ def analyze_code(project_path, entry_point, language=None):
         for func_name in project_source_code:
             logger.info(f"  - {func_name}")
 
+        # 生成调用链可视化图形
+        analyzer.visualize_call_graph()
+
         # 返回结果
         return results
     else:
@@ -71,9 +74,9 @@ def analyze_code(project_path, entry_point, language=None):
 
 
 if __name__ == "__main__":
-    # 示例用法
-    project_path = "C:/Users/86364/PycharmProjects/cd_findcar_automation_engine"
-    entry_point = "apps.network_lcd.urls.get_history_command_message"
+    project_path = r"C:\Users\86364\PycharmProjects\cd_findcar_automation_engine"
+    entry_point = "apps.parking_camera.urls.upload_parking_picture"
 
     results = analyze_code(project_path, entry_point, 'python')
-    logger.info(f"\n{results}")
+    logger.info(f"最终收集到的信息：\n{results}")
+    logger.info(f"收集到的源码信息：{results.get('source_code', '无源码信息')}")
