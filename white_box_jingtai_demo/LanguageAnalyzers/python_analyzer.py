@@ -5,6 +5,7 @@ import re
 from white_box_jingtai_demo.LanguageAnalyzers.base_analyzer import BaseAnalyzer
 from white_box_jingtai_demo.core.logger import logger
 import matplotlib.pyplot as plt
+from white_box_jingtai_demo.core.file_path import output_path
 
 
 class PythonAnalyzer(BaseAnalyzer):
@@ -515,7 +516,7 @@ class PythonAnalyzer(BaseAnalyzer):
         """判断模块是否与入口模块相关"""
         return module_name in self.related_modules
 
-    def visualize_call_graph(self, output_file="call_graph.png"):
+    def visualize_call_graph(self, output_file=rf"{output_path}\call_graph.png"):
         """可视化调用图，并保存为图片文件"""
         try:
             # 1. 调整布局参数

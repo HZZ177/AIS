@@ -9,10 +9,10 @@ CodeAnalyzer_path = os.path.abspath(os.path.join(project_path, 'CodeAnalyzer')) 
 log_path = os.path.abspath(os.path.join(project_path, 'logs'))
 LanguageAnalyzers_path = os.path.abspath(os.path.join(project_path, 'LanguageAnalyzers'))
 core_path = os.path.abspath(os.path.join(project_path, 'core'))     # core目录
-
+output_path = os.path.abspath(os.path.join(project_path, 'output'))
 '''二级目录'''
 
 
 if __name__ == '__main__':
-    print(project_path)
+    print(output_path)
     # pass
