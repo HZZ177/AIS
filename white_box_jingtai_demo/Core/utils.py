@@ -1,4 +1,4 @@
-from white_box_jingtai_demo.core.file_path import output_path
+from white_box_jingtai_demo.Core.file_path import output_path
 
 
 def save_to_md(content, file_name="generate_testcase"):

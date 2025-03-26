@@ -1,17 +1,15 @@
 import uuid
-from datetime import datetime
 
-from crewai import Agent, Task, Crew, process, LLM
-from main_demo.core.logger import logger
-from white_box_jingtai_demo.agents import Agents
-from white_box_jingtai_demo.core.utils import save_to_md
-from white_box_jingtai_demo.source_collector import analyze_code
-from white_box_jingtai_demo.tasks import Tasks
+from crewai import Crew, process, LLM
+from white_box_jingtai_demo.Multi_agents.agents import Agents
+from white_box_jingtai_demo.Core.utils import save_to_md
+from white_box_jingtai_demo.CodeAnalyzer.source_collector import analyze_code
+from white_box_jingtai_demo.Multi_agents.tasks import Tasks
 
 # 初始化一个llm大语言模型
 llm = LLM(
     # openrouter
-    model="openrouter/google/gemini-2.0-flash-001",
+    model="openrouter/deepseek/deepseek-chat-v3-0324:free",
     base_url="https://openrouter.ai/api/v1",
     api_key="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"
 )

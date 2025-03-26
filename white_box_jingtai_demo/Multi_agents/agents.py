@@ -1,11 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# @Time    : 2025/3/6 15:23
-# @Author  : Heshouyi
-# @File    : agents.py
-# @Software: PyCharm
-# @description:
-
 from crewai import Agent
 
 

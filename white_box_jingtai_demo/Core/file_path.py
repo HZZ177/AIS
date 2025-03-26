@@ -8,7 +8,7 @@ project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CodeAnalyzer_path = os.path.abspath(os.path.join(project_path, 'CodeAnalyzer'))     # app根目录
 log_path = os.path.abspath(os.path.join(project_path, 'logs'))
 LanguageAnalyzers_path = os.path.abspath(os.path.join(project_path, 'LanguageAnalyzers'))
-core_path = os.path.abspath(os.path.join(project_path, 'core'))     # core目录
+core_path = os.path.abspath(os.path.join(project_path, 'Core'))     # core目录
 output_path = os.path.abspath(os.path.join(project_path, 'output'))
 '''二级目录'''
 

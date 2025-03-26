@@ -3,9 +3,9 @@ import ast
 import networkx as nx
 import re
 from white_box_jingtai_demo.LanguageAnalyzers.base_analyzer import BaseAnalyzer
-from white_box_jingtai_demo.core.logger import logger
+from white_box_jingtai_demo.Core.logger import logger
 import matplotlib.pyplot as plt
-from white_box_jingtai_demo.core.file_path import output_path
+from white_box_jingtai_demo.Core.file_path import output_path
 
 
 class PythonAnalyzer(BaseAnalyzer):
@@ -312,11 +312,11 @@ class PythonAnalyzer(BaseAnalyzer):
                 # 对于lora_node这样的局部变量，查找在context中的定义
                 if parts[0] == "lora_node":
                     # 这是在函数中创建的局部变量，通过查找get_lora_node的返回值类型确定
-                    return f"core.lora_node_service.LoraNodeService.{parts[1]}"
+                    return f"Core.lora_node_service.LoraNodeService.{parts[1]}"
                 elif parts[0] == "DeviceManager":
-                    return f"core.device_manager.DeviceManager.{parts[1]}"
+                    return f"Core.device_manager.DeviceManager.{parts[1]}"
                 elif parts[0] == "logger":
-                    return f"core.logger.logger.{parts[1]}"
+                    return f"Core.logger.logger.{parts[1]}"
                 else:
                     return '.'.join(parts)
 
@@ -405,7 +405,7 @@ class PythonAnalyzer(BaseAnalyzer):
         if file_path:
             project_prefixes = [
                 os.path.join(self.project_path, "apps"),
-                os.path.join(self.project_path, "core"),
+                os.path.join(self.project_path, "Core"),
                 # 添加其他项目目录...
             ]
 
@@ -491,7 +491,7 @@ class PythonAnalyzer(BaseAnalyzer):
         called_module = '.'.join(called_path.split('.')[:2])
 
         # 特殊处理core模块和apps模块之间的合法调用
-        if caller_module == 'apps.lora_node' and called_module == 'core.lora_node_service':
+        if caller_module == 'apps.lora_node' and called_module == 'Core.lora_node_service':
             return False
 
         return caller_module != called_module
@@ -503,8 +503,8 @@ class PythonAnalyzer(BaseAnalyzer):
 
         # 这里可以定义模块间的关联关系
         module_relations = {
-            'apps.lora_node': ['core.lora_node_service', 'core.device_manager', 'core.util'],
-            'core.lora_node_service': ['apps.four_bytes_node']
+            'apps.lora_node': ['Core.lora_node_service', 'Core.device_manager', 'Core.util'],
+            'Core.lora_node_service': ['apps.four_bytes_node']
         }
 
         if entry_module in module_relations:
@@ -568,7 +568,6 @@ class PythonAnalyzer(BaseAnalyzer):
                 logger.error(f"生成图形时出错: {e}. 请确保 Graphviz 已正确安装.")
 
 
-# 示例使用 (测试代码放这里)
 if __name__ == '__main__':
     pass
 
