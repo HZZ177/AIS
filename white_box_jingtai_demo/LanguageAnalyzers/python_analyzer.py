@@ -43,7 +43,6 @@ class PythonAnalyzer(BaseAnalyzer):
                 return None
 
             # 分析调用链
-            # self.call_graph = nx.DiGraph() # 移到 __init__ 中
             self.call_graph.add_node(entry_point_path)
             self._analyze_calls_recursive(target_node, entry_point_path, set())
 
@@ -185,7 +184,7 @@ class PythonAnalyzer(BaseAnalyzer):
         visited.add(caller_path)
         logger.info(f"分析调用: {caller_path} [深度: {depth}]")
 
-        # 从调用路径中提取模块前缀，用于统一处理实例方法调用
+        # 从调用路径中提取模块前缀，用于统一处理实例方法调用（self.update() 转换为 ClassName.update形式）
         module_prefix = '.'.join(caller_path.split('.')[:-1]) if '.' in caller_path else ''
 
         # 收集当前函数体中的所有调用
@@ -375,7 +374,7 @@ class PythonAnalyzer(BaseAnalyzer):
     def is_project_function(self, node_path, file_path=None):
         """判断函数是否为项目自定义函数"""
 
-        # 1. 过滤掉self.xxx形式的调用，它们会在_analyze_calls_recursive方法中被标准化
+        # 1. 过滤掉self.xxx形式的调用，它们会在_analyze_calls_recursive方法中被标准化，例如将 self.update() 转换为 ClassName.update
         if node_path.startswith('self.'):
             return True
 

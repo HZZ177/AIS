@@ -28,11 +28,13 @@ def create_analyzer(project_path, language=None):
 
 def analyze_code(project_path, entry_point, language=None):
     """统一的分析入口"""
+
+    # 初步分析源码调用链
     analyzer = create_analyzer(project_path, language)
     results = analyzer.analyze_entry_point(entry_point)
 
+    # 处理结果，过滤第三方库或内置库等
     if results:
-        # 处理结果
         call_graph = results['call_graph']
         source_code = results['source_code']
         
@@ -66,7 +68,6 @@ def analyze_code(project_path, entry_point, language=None):
         # 生成调用链可视化图形
         analyzer.visualize_call_graph()
 
-        # 返回结果
         return results
     else:
         logger.error(f"分析失败: {entry_point}")
