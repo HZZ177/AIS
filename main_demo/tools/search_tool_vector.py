@@ -56,19 +56,22 @@ class SiliconFlowEmbeddingFunction:
         self.api_key = api_key
         self.model_name = model_name
         self.url = "https://api.siliconflow.cn/v1/embeddings"
+        self.dimension = 1024   # Pro/BAAI/bge-m3 的维度是 1024
 
     def __call__(self, input: List[str]) -> List[List[float]]:
         """生成文本嵌入向量
-
         Args:
             input: 需要生成嵌入向量的文本列表
-
         Returns:
             List[List[float]]: 嵌入向量列表
         """
         embeddings = []
-
         for text in input:
+            # 跳过空文本或仅包含空格的文本
+            if not text or text.isspace():
+                logger.warning(f"跳过空文本块的 embedding 生成")
+                embeddings.append([0.0] * self.dimension)  # 使用零向量填充
+                continue
             try:
                 response = requests.post(
                     self.url,
@@ -82,16 +85,43 @@ class SiliconFlowEmbeddingFunction:
                         "encoding_format": "float"
                     }
                 )
-                if response.status_code == 200:
-                    embedding = response.json().get('embedding', [])
-                    embeddings.append(embedding)
+                response.raise_for_status()  # 改为检查 >=400 的错误状态码
+                response_data = response.json()
+                # 检查 'data' 列表是否存在且非空
+                if 'data' in response_data and isinstance(response_data['data'], list) and len(
+                        response_data['data']) > 0:
+                    # 检查第一个元素是否有 'embedding' 并且它是一个列表
+                    embedding_data = response_data['data'][0]
+                    if 'embedding' in embedding_data and isinstance(embedding_data['embedding'], list) and len(
+                            embedding_data['embedding']) == self.dimension:
+                        embeddings.append(embedding_data['embedding'])
+                    else:
+                        # 即使状态码 200，如果 embedding 数据无效或维度不匹配，也记录错误并使用零向量
+                        logger.error(
+                            f"API 成功响应但 embedding 数据无效或维度错误 ({len(embedding_data.get('embedding', []))} != {self.dimension})。Text: {text[:100]}... Response: {response_data}")
+                        embeddings.append([0.0] * self.dimension)
                 else:
-                    logger.error(f"调用 embedding API失败，状态码: {response.status_code}")
-                    embeddings.append([0.0] * 4096)
+                    # 即使状态码 200，如果 'data' 结构不符合预期，也记录错误
+                    logger.error(
+                        f"API 成功响应但 'data' 结构不符合预期。Text: {text[:100]}... Response: {response_data}")
+                    embeddings.append([0.0] * self.dimension)
+            except requests.exceptions.RequestException as e:
+                # 处理所有 requests 相关的错误 (连接、超时、HTTP错误等)
+                status_code = e.response.status_code if e.response is not None else "N/A"
+                error_details = str(e)
+                if e.response is not None:
+                    try:
+                        # 尝试获取响应体中的错误信息
+                        error_details += f" | Response: {e.response.text}"
+                    except Exception:
+                        pass  # 忽略获取响应体时的错误
+                logger.error(
+                    f"调用 embedding API 失败 (状态码: {status_code})。Text: {text[:100]}... Error: {error_details}")
+                embeddings.append([0.0] * self.dimension)
             except Exception as e:
-                logger.error(f"embedding嵌入向量失败: {str(e)}")
-                embeddings.append([0.0] * 4096)
-
+                # 处理其他意外错误 (如 JSON 解析错误)
+                logger.error(f"embedding 嵌入向量时发生意外错误: {str(e)}。Text: {text[:100]}...")
+                embeddings.append([0.0] * self.dimension)
         return embeddings
 
 
@@ -115,6 +145,7 @@ class SearchTool(BaseTool):
     # 使用 PrivateAttr 来存储私有属性
     _chroma_client: chromadb.PersistentClient = PrivateAttr(default=None)
     _collection: Any = PrivateAttr(default=None)
+    # _embedding_function: SiliconFlowEmbeddingFunction = PrivateAttr(default=None)
     _embedding_function: SiliconFlowEmbeddingFunction = PrivateAttr(default=None)
 
     def __init__(self, **data):
@@ -274,6 +305,13 @@ class SearchTool(BaseTool):
         """从 ChromaDB 搜索相关文档"""
         try:
             logger.info(f"开始从chromadb查询关键词：{keyword}")
+            logger.info(f"""
+            即将执行的搜索语句：
+            results = self._collection.query(
+                query_texts={[keyword]},
+                n_results={n_results}
+            )
+            """)
             results = self._collection.query(
                 query_texts=[keyword],
                 n_results=n_results
