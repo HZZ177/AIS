@@ -7,6 +7,7 @@ from tqdm import tqdm
 from main_demo.core.logger import logger
 from chromadb import Documents, EmbeddingFunction, Embeddings
 from chromadb.utils import embedding_functions
+import os # 确保导入 os 模块
 
 
 class OllamaEmbeddingFunction:
@@ -65,8 +66,11 @@ class SiliconFlowEmbeddingFunction:
         Returns:
             List[List[float]]: 嵌入向量列表
         """
+        logger.debug(f"--- SiliconFlowEmbeddingFunction __call__ 被调用 ---")
+        logger.debug(f"输入文本数量: {len(input)}, 第一个文本片段(最多100字符): {input[0][:100] if input else 'N/A'}...")
         embeddings = []
-        for text in input:
+        for idx, text in enumerate(input):
+            logger.debug(f"正在处理第 {idx+1}/{len(input)} 个文本块的 embedding...")
             # 跳过空文本或仅包含空格的文本
             if not text or text.isspace():
                 logger.warning(f"跳过空文本块的 embedding 生成")
@@ -95,6 +99,7 @@ class SiliconFlowEmbeddingFunction:
                     if 'embedding' in embedding_data and isinstance(embedding_data['embedding'], list) and len(
                             embedding_data['embedding']) == self.dimension:
                         embeddings.append(embedding_data['embedding'])
+                        logger.debug(f"成功获取第 {idx+1} 个文本块的 embedding (维度: {len(embedding_data['embedding'])})")
                     else:
                         # 即使状态码 200，如果 embedding 数据无效或维度不匹配，也记录错误并使用零向量
                         logger.error(
@@ -122,6 +127,7 @@ class SiliconFlowEmbeddingFunction:
                 # 处理其他意外错误 (如 JSON 解析错误)
                 logger.error(f"embedding 嵌入向量时发生意外错误: {str(e)}。Text: {text[:100]}...")
                 embeddings.append([0.0] * self.dimension)
+        logger.debug(f"--- SiliconFlowEmbeddingFunction __call__ 完成 --- 返回 {len(embeddings)} 个 embeddings.")
         return embeddings
 
 
@@ -175,20 +181,23 @@ class SearchTool(BaseTool):
     def _initialize_chromadb(self):
         """初始化 ChromaDB 客户端和集合"""
         try:
-            db_path = "./chroma_db"
+            # 确认使用的db路径
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            db_path = os.path.join(script_dir, "chroma_db")
+            logger.info(f"使用的 ChromaDB 绝对路径: {db_path}")
 
             # 初始化 ChromaDB 客户端
             self._chroma_client = chromadb.PersistentClient(
                 path=db_path
             )
-            logger.info(f"ChromaDB 客户端初始化成功，dbid={id(self._chroma_client)}")
+            logger.debug(f"ChromaDB 客户端初始化成功，dbid={id(self._chroma_client)}")
 
             # 初始化 embedding 函数
             # self._embedding_function = OllamaEmbeddingFunction(
             #     model_name="nomic-embed-text:latest"
             # )
             self._embedding_function = SiliconFlowEmbeddingFunction()
-            logger.info("Embedding 函数初始化成功")
+            logger.debug("Embedding 函数初始化成功")
 
             # 创建新集合
             self._collection = self._chroma_client.get_or_create_collection(
@@ -243,9 +252,18 @@ class SearchTool(BaseTool):
             logger.info("没有文档需要存储")
             return
 
+        # --- 使用 self._collection 来检查和添加 ---
         if self._collection is None:
-            logger.info("ChromaDB 集合未初始化")
-            return
+            logger.warning("尝试存储时发现 ChromaDB 集合 (self._collection) 未初始化，尝试重新获取...")
+            try:
+                self._collection = self._chroma_client.get_collection(
+                    name="yunwei_knowledge",
+                    embedding_function=self._embedding_function
+                )
+                logger.info("重新获取 Collection 成功")
+            except Exception as e:
+                 logger.error(f"重新获取 Collection 失败: {e}", exc_info=True)
+                 return # 获取失败则无法继续存储
 
         # 首先计算总块数
         total_chunks = 0
@@ -258,6 +276,7 @@ class SearchTool(BaseTool):
                 valid_docs.append((doc, chunks))
                 valid_docs_ids.append(doc.get("docId"))
 
+        logger.warning(valid_docs)
         logger.info(f"去掉接口文档，总计 {len(valid_docs)} 个文档，{total_chunks} 个文本块")
         total_stored = 0
 
@@ -270,6 +289,7 @@ class SearchTool(BaseTool):
                     try:
                         # 直接存储每个块
                         doc_id = f"doc_{valid_docs_ids[doc_index]}_chunk_{chunk_index + 1}"
+                        # 仍然使用 self._collection 来执行 get 和 add
                         existing = self._collection.get(ids=[doc_id]).get("ids") != []
                         if existing:
                             logger.info(f"向量存储跳过已存在的文档块 {doc_id}")
@@ -305,23 +325,50 @@ class SearchTool(BaseTool):
         """从 ChromaDB 搜索相关文档"""
         try:
             logger.info(f"开始从chromadb查询关键词：{keyword}")
+
+            # --- 修改：强制重新获取 Collection 对象， crewai中直接使用self.collection会导致查不到任何东西，原因未知 ---
+            if self._chroma_client:
+                try:
+                    # 尝试重新获取集合对象，而不是直接使用 self._collection
+                    current_collection = self._chroma_client.get_collection(
+                        name="yunwei_knowledge",
+                        embedding_function=self._embedding_function # 确保传递 embedding function
+                    )
+                    collection_count = current_collection.count()
+                    logger.info(f"查询前检查：重新获取集合 '{current_collection.name}' 成功，包含 {collection_count} 个文档")
+                except Exception as e:
+                    logger.error(f"查询前检查：重新获取集合时出错: {e}", exc_info=True)
+                    return "错误：向量数据库集合获取失败"
+            else:
+                logger.error("查询前检查：ChromaDB 客户端 self._chroma_client 未初始化！")
+                return "错误：向量数据库客户端未初始化"
+
+            if current_collection is None:
+                 logger.error("查询前检查：未能成功获取 Collection 对象")
+                 return "错误：无法执行查询，Collection 对象无效"
+            # --- 修改结束 ---
+
+
             logger.info(f"""
             即将执行的搜索语句：
-            results = self._collection.query(
+            results = current_collection.query(
                 query_texts={[keyword]},
                 n_results={n_results}
             )
             """)
-            results = self._collection.query(
+            # 使用重新获取的 collection 对象进行查询
+            results = current_collection.query(
                 query_texts=[keyword],
                 n_results=n_results
             )
-            print(f"===={results}")
+            logger.info(f"ChromaDB 查询原始返回: {results}")
 
-            if not results['documents'][0]:
+            # 检查 documents 是否为空列表或列表的第一个元素为空列表 (使用 results 变量)
+            if not results or not results.get('documents') or not results['documents'][0]:
+                logger.warning(f"查询关键词 '{keyword}' 未在 ChromaDB 中找到任何匹配文档。")
                 return "未找到相关信息"
 
-            # 格式化搜索结果
+            # 格式化搜索结果 (使用 results 变量)
             formatted_results = []
             for i, (doc_id, doc, metadata, distance) in enumerate(zip(
                     results['ids'][0],
@@ -337,9 +384,11 @@ class SearchTool(BaseTool):
                     f"{doc}\n"
                 )
 
+            logger.info(f"成功格式化 {len(formatted_results)} 条搜索结果。")
             return "\n\n".join(formatted_results)
 
         except Exception as e:
+            logger.error(f"向量搜索执行过程中出错: {str(e)}", exc_info=True)
             return f"向量搜索出错: {str(e)}"
 
     def _run(self, keyword: str) -> str:
@@ -350,32 +399,43 @@ class SearchTool(BaseTool):
         :param keyword:
         :return:
         """
+        logger.info(f"--- SearchTool._run 被调用 ---")
+        logger.info(f"接收到的 keyword 类型: {type(keyword)}, 值: {repr(keyword)}")
 
         try:
-            if isinstance(keyword, dict):
-                keyword = keyword.get('keyword')
+            # 参数处理
+            if isinstance(keyword, dict) and 'keyword' in keyword:
+                 actual_keyword = keyword.get('keyword')
+                 logger.info(f"从字典中提取 keyword: {actual_keyword}")
+            elif isinstance(keyword, str):
+                 actual_keyword = keyword
+                 logger.info(f"接收到的 keyword 是字符串: {actual_keyword}")
+            else:
+                 logger.error(f"接收到非预期的 keyword 类型: {type(keyword)}。尝试将其转为字符串。")
+                 actual_keyword = str(keyword)
 
-            logger.info(f"工具接收的关键词：{keyword}")
+            if not actual_keyword or not actual_keyword.strip():
+                logger.error("提取或转换后的 keyword 为空或无效，无法执行搜索。")
+                return "错误：未能获取有效的搜索关键字。"
 
-            # 确保 ChromaDB 已初始化
-            if self._collection is None:
-                logger.info("ChromaDB集合未初始化，尝试重新初始化...")
-                self._initialize_chromadb()
+            logger.info(f"工具实际使用的关键词：'{actual_keyword}'")
 
-            # 1. 从 API 获取数据
-            api_data = self._fetch_api_data(keyword)
+            logger.info(f"开始从 运维中心API 获取数据，关键词: '{actual_keyword}'")
+            api_data = self._fetch_api_data(actual_keyword)
             logger.info(f"从API获取到 {len(api_data)} 条数据")
 
-            # 2. 存储到ChromaDB
-            self._store_in_chromadb(api_data)
+            logger.info(f"开始存储数据到 ChromaDB")
+            self._store_in_chromadb(api_data)   # 内部会检查 self._collection
+            logger.info(f"数据存储完成")
 
-            # 3. 从ChromaDB搜索
-            results = self._search_from_chromadb(keyword)
+            logger.info(f"开始从 ChromaDB 搜索，关键词: '{actual_keyword}'")
+            results = self._search_from_chromadb(actual_keyword)    # 内部会重新获取 collection
+            logger.info(f"ChromaDB 搜索完成，_search_from_chromadb 返回结果长度: {len(results)}")
 
             return results
 
         except Exception as e:
-            logger.error(f"工具错误详情: {str(e)}")
+            logger.error(f"工具错误详情: {str(e)}", exc_info=True)
             return f"工具执行出错: {str(e)}"
 
 

@@ -44,10 +44,14 @@ task_requirements = Task(
     description="""
     1、你需要根据客户的问题【{question}】，使用工具【search_tool】进行相关背景资料的查询并提供给其他人
     2、你只能使用工具查询出的资料作为信息来源，除此之外不要用使用任何其他来源的信息
-    注意：如果没有从工具中找到匹配的相关资料，请直接返回没有搜索到任何参考资料。如果有找到任何可用的资料，请你发送给下一位工作人员
+    注意：
+        如果没有从工具中找到匹配的相关资料，请直接返回没有搜索到任何参考资料
+        如果有找到任何可用的资料，请你以以下格式返回：
+        【相关参考资料】
+        xxxxx
     """,
     expected_output="""
-    5条与问题{question}最相关的详细的资料
+    查询到的详细的资料
     """,
     agent=search_agent,
     verbose=True,
@@ -56,14 +60,14 @@ task_requirements = Task(
 
 task_testcase = Task(
     description="""
-    根据查询员提供的资料，结合用户的问题{question}分析问题可能出现在哪里，对应的解决方案是什么
+    根据查询员提供的参考资料，结合用户的问题{question}分析问题可能出现在哪里，对应的解决方案是什么
     如果上一步返回给你没有找到任何资料，请直接说明没有接收到任何参考资料，无法回答
     注意：如果有多条建议或方案，请分点列出
     例如：
     【用户】
-        入车之后车位状态不变，仍然是空闲
+        入车之后车位状态不变
     【回答】：
-        1、可能是由于开启了后台紧急模式，导致车位状态变化减慢或失准，可以在后台关闭紧急模式开关来解决
+        1、可能是由于xxxx
         2、xxxxxxxxxxxxxxx
         3、xxxxxxxxxxxxxxx
     """,
@@ -89,10 +93,7 @@ crew = Crew(
 
 
 if __name__ == "__main__":
+    # 确保 inputs 的 key 与 Task description 中的占位符一致
     result = crew.kickoff(inputs={"question": "车位状态"})
-    # # print(result)
-    # result = tool_pdf.run(
-    #     pdf='files/findcarQA.pdf',
-    #     query="车位状态变化太慢"
-    # )
-    # print(result)
+    print("------最终结果------")
+    print(result)
