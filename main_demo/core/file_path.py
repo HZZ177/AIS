@@ -6,7 +6,7 @@ project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 '''一级目录'''
 chromadb_db_path = os.path.abspath(os.path.join(project_path, 'chromadb_db'))     # app根目录
-core_path = os.path.abspath(os.path.join(project_path, 'Core'))     # core目录
+core_path = os.path.abspath(os.path.join(project_path, 'core'))     # core目录
 log_path = os.path.abspath(os.path.join(project_path, 'logs'))
 tools_path = os.path.abspath(os.path.join(project_path, 'tools'))
 

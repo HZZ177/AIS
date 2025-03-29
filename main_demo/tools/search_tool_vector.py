@@ -7,7 +7,7 @@ from tqdm import tqdm
 from main_demo.core.logger import logger
 from chromadb import Documents, EmbeddingFunction, Embeddings
 from chromadb.utils import embedding_functions
-import os # 确保导入 os 模块
+import os
 
 
 class OllamaEmbeddingFunction:
@@ -103,12 +103,12 @@ class SiliconFlowEmbeddingFunction:
                     else:
                         # 即使状态码 200，如果 embedding 数据无效或维度不匹配，也记录错误并使用零向量
                         logger.error(
-                            f"API 成功响应但 embedding 数据无效或维度错误 ({len(embedding_data.get('embedding', []))} != {self.dimension})。Text: {text[:100]}... Response: {response_data}")
+                            f"API 成功响应但 embedding 数据无效或维度错误 ({len(embedding_data.get('embedding', []))} != {self.dimension})，Text: {text[:100]}... Response: {response_data}")
                         embeddings.append([0.0] * self.dimension)
                 else:
                     # 即使状态码 200，如果 'data' 结构不符合预期，也记录错误
                     logger.error(
-                        f"API 成功响应但 'data' 结构不符合预期。Text: {text[:100]}... Response: {response_data}")
+                        f"API 成功响应但 'data' 结构不符合预期，Text: {text[:100]}... Response: {response_data}")
                     embeddings.append([0.0] * self.dimension)
             except requests.exceptions.RequestException as e:
                 # 处理所有 requests 相关的错误 (连接、超时、HTTP错误等)
@@ -121,11 +121,11 @@ class SiliconFlowEmbeddingFunction:
                     except Exception:
                         pass  # 忽略获取响应体时的错误
                 logger.error(
-                    f"调用 embedding API 失败 (状态码: {status_code})。Text: {text[:100]}... Error: {error_details}")
+                    f"调用 embedding API 失败 (状态码: {status_code}), Text: {text[:100]}... Error: {error_details}")
                 embeddings.append([0.0] * self.dimension)
             except Exception as e:
                 # 处理其他意外错误 (如 JSON 解析错误)
-                logger.error(f"embedding 嵌入向量时发生意外错误: {str(e)}。Text: {text[:100]}...")
+                logger.error(f"embedding 嵌入向量时发生意外错误: {str(e)}, Text: {text[:100]}...")
                 embeddings.append([0.0] * self.dimension)
         logger.debug(f"--- SiliconFlowEmbeddingFunction __call__ 完成 --- 返回 {len(embeddings)} 个 embeddings.")
         return embeddings
@@ -144,7 +144,7 @@ class SearchTool(BaseTool):
     """
     name: str = "search_tool"
     description: str = """
-    当需要查询运维中心知识库信息时使用该工具。
+    当需要查询运维中心知识库信息时使用该工具
     """
     args_schema: Type[BaseModel] = YunWeiSearchToolInput
 
@@ -276,7 +276,6 @@ class SearchTool(BaseTool):
                 valid_docs.append((doc, chunks))
                 valid_docs_ids.append(doc.get("docId"))
 
-        logger.warning(valid_docs)
         logger.info(f"去掉接口文档，总计 {len(valid_docs)} 个文档，{total_chunks} 个文本块")
         total_stored = 0
 
@@ -326,7 +325,7 @@ class SearchTool(BaseTool):
         try:
             logger.info(f"开始从chromadb查询关键词：{keyword}")
 
-            # --- 修改：强制重新获取 Collection 对象， crewai中直接使用self.collection会导致查不到任何东西，原因未知 ---
+            # --- 标记：强制重新获取 Collection 对象， crewai中直接使用self.collection会导致查不到任何东西，原因未知 ---
             if self._chroma_client:
                 try:
                     # 尝试重新获取集合对象，而不是直接使用 self._collection
@@ -346,29 +345,20 @@ class SearchTool(BaseTool):
             if current_collection is None:
                  logger.error("查询前检查：未能成功获取 Collection 对象")
                  return "错误：无法执行查询，Collection 对象无效"
-            # --- 修改结束 ---
 
-
-            logger.info(f"""
-            即将执行的搜索语句：
-            results = current_collection.query(
-                query_texts={[keyword]},
-                n_results={n_results}
-            )
-            """)
             # 使用重新获取的 collection 对象进行查询
             results = current_collection.query(
                 query_texts=[keyword],
                 n_results=n_results
             )
-            logger.info(f"ChromaDB 查询原始返回: {results}")
+            logger.debug(f"ChromaDB 查询原始返回: {results}")
 
-            # 检查 documents 是否为空列表或列表的第一个元素为空列表 (使用 results 变量)
+            # 检查documents是否为空列表或列表的第一个元素为空列表
             if not results or not results.get('documents') or not results['documents'][0]:
-                logger.warning(f"查询关键词 '{keyword}' 未在 ChromaDB 中找到任何匹配文档。")
+                logger.warning(f"查询关键词 '{keyword}' 未在 ChromaDB 中找到任何匹配文档")
                 return "未找到相关信息"
 
-            # 格式化搜索结果 (使用 results 变量)
+            # 格式化搜索结果
             formatted_results = []
             for i, (doc_id, doc, metadata, distance) in enumerate(zip(
                     results['ids'][0],
@@ -384,7 +374,7 @@ class SearchTool(BaseTool):
                     f"{doc}\n"
                 )
 
-            logger.info(f"成功格式化 {len(formatted_results)} 条搜索结果。")
+            logger.info(f"成功格式化 {len(formatted_results)} 条搜索结果")
             return "\n\n".join(formatted_results)
 
         except Exception as e:
@@ -411,12 +401,12 @@ class SearchTool(BaseTool):
                  actual_keyword = keyword
                  logger.info(f"接收到的 keyword 是字符串: {actual_keyword}")
             else:
-                 logger.error(f"接收到非预期的 keyword 类型: {type(keyword)}。尝试将其转为字符串。")
+                 logger.error(f"接收到非预期的 keyword 类型: {type(keyword)} 尝试将其转为字符串")
                  actual_keyword = str(keyword)
 
             if not actual_keyword or not actual_keyword.strip():
-                logger.error("提取或转换后的 keyword 为空或无效，无法执行搜索。")
-                return "错误：未能获取有效的搜索关键字。"
+                logger.error("提取或转换后的 keyword 为空或无效，无法执行搜索")
+                return "错误：未能获取有效的搜索关键字"
 
             logger.info(f"工具实际使用的关键词：'{actual_keyword}'")
 
@@ -428,9 +418,9 @@ class SearchTool(BaseTool):
             self._store_in_chromadb(api_data)   # 内部会检查 self._collection
             logger.info(f"数据存储完成")
 
-            logger.info(f"开始从 ChromaDB 搜索，关键词: '{actual_keyword}'")
+            logger.info(f"开始从 ChromaDB 向量搜索，关键词: '{actual_keyword}'")
             results = self._search_from_chromadb(actual_keyword)    # 内部会重新获取 collection
-            logger.info(f"ChromaDB 搜索完成，_search_from_chromadb 返回结果长度: {len(results)}")
+            logger.info(f"ChromaDB 向量搜索完成，_search_from_chromadb 返回结果长度: {len(results)}")
 
             return results
 

@@ -1,10 +1,10 @@
 import uuid
 
 from crewai import Crew, process, LLM
-from white_box_jingtai_demo.Multi_agents.agents import Agents
-from white_box_jingtai_demo.Core.utils import save_to_md
-from white_box_jingtai_demo.CodeAnalyzer.source_collector import analyze_code
-from white_box_jingtai_demo.Multi_agents.tasks import Tasks
+from white_box_jingtai_demo.multi_agents.agents import Agents
+from white_box_jingtai_demo.core.utils import save_to_md
+from white_box_jingtai_demo.codeAnalyzer.source_collector import analyze_code
+from white_box_jingtai_demo.multi_agents.tasks import Tasks
 
 # 初始化一个llm大语言模型
 llm = LLM(
@@ -36,14 +36,16 @@ crew = Crew(
 
 
 if __name__ == "__main__":
-    # 定义项目路径，要测试的函数入口
+    # 定义项目路径，要解析的函数入口
     project_path = r"C:\Users\86364\PycharmProjects\cd_findcar_automation_engine"
     entry_point = "apps.parking_camera.urls.upload_parking_picture"
 
     # 解析并收集调用链源码
     source_code = str(analyze_code(project_path, entry_point, 'python'))
+    # 额外辅助信息
     extra_info = "无"
 
+    # 执行crew工作流
     result = crew.kickoff(
         inputs={
             "source_data": source_code,
@@ -51,6 +53,6 @@ if __name__ == "__main__":
         }
     )
 
-    # 保存用例到md文件
+    # 保存生成的用例到md文件
     uuid = str(uuid.uuid4()).replace("-", "")
     save_to_md(result, f"generate_testcase_{uuid}")
