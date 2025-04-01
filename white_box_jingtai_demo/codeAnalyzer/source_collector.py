@@ -1,6 +1,6 @@
 import os
-from LanguageAnalyzers.python_analyzer import PythonAnalyzer
-from LanguageAnalyzers.java_analyzer import JavaAnalyzer
+from languageAnalyzers.python_analyzer import PythonAnalyzer
+from languageAnalyzers.java_analyzer import JavaAnalyzer
 from white_box_jingtai_demo.core.logger import logger
 
 
