@@ -1,3 +1,5 @@
 .idea/*
 */logs/
 main_demo/tools/chroma_db
+/test_case_demo/output/
+/white_box_jingtai_demo/output/
