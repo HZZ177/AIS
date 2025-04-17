@@ -23,7 +23,13 @@ class MyLLMStreamListener(BaseEventListener):
             token = event.chunk
             token_queue.put(token)
 
-
+# 注册一个监听类示例，从而确保：
+# 1、The event handlers are registered with the event bus
+# 事件处理程序在事件总线上注册
+# 2、The listener instance remains in memory (not garbage collected)
+# 监听器实例保留在内存中（不进行垃圾回收）
+# 3、The listener is active when events are emitted
+# 事件发生时，监听器处于活动状态
 llm_stream_listener = MyLLMStreamListener()
 
 
